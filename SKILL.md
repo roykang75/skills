@@ -266,7 +266,7 @@ SVG `<path>` + `<marker>` 로 화살표:
 #### 전체 레이아웃
 
 - 배경: `#FFFFFF`
-- 전체 너비: `1200px`, 중앙 정렬
+- 전체 너비: `1600px`, 중앙 정렬
 - 폰트: `Segoe UI, system-ui, -apple-system, sans-serif`
 - 각 섹션을 `.panel` (검정 테두리, 둥근 모서리 12px, 흰색 배경) 로 감싼다
 - 패널 내부 서브섹션 구분: 점선 (`stroke-dasharray="6 3"`, `#CCCCCC`)
@@ -283,6 +283,43 @@ SVG `<path>` + `<marker>` 로 화살표:
 - 단순 outline보다 약간의 두께감과 색채감이 있는 아이콘을 지향한다
 
 아이콘을 SVG 내에서 사용할 때는 `<g transform="translate(x,y)">` 로 박스 내 위치에 배치하고, 아이콘 path를 직접 인라인한다.
+
+#### 오버플로우 방지 규칙 (Overflow Prevention Rules) — CRITICAL
+
+텍스트가 박스 밖으로 넘치는 것을 방지하기 위해 반드시 따라야 하는 규칙:
+
+1. **텍스트 너비 추정**:
+   - Monospace font 10.5px: 글자당 ~6.5px
+   - Sans-serif font 12px: 글자당 ~7px
+   - Sans-serif font 14px: 글자당 ~8px
+   - 항상 계산: text_width = char_count * char_width
+
+2. **박스 크기 규칙**:
+   - box_width >= text_width + (padding * 2) + icon_width + icon_gap
+   - 텍스트와 박스 가장자리 사이 최소 8px 패딩
+   - 아이콘 + 텍스트가 같은 박스에 있을 때: icon_width(22px) + gap(8px) 추가
+
+3. **SVG overflow 안전장치**:
+   - 모든 SVG 요소: `overflow="visible"` 추가
+   - Panel CSS: `overflow: visible` (절대 `overflow: hidden` 사용 금지)
+
+4. **SVG viewBox 크기**:
+   - viewBox는 모든 콘텐츠를 담을 만큼 충분히 크게 설정
+   - 모든 방향에 20px 여백 추가
+   - 콘텐츠가 넘치면 viewBox를 키울 것 — 콘텐츠를 줄이지 말 것
+
+5. **아이콘-텍스트 간격**:
+   - SVG 아이콘과 텍스트 사이 간격: 6-8px (그 이상 금지)
+   - 텍스트 x 위치 = icon_x + icon_width + 6px
+
+6. **긴 텍스트 처리**:
+   - 필요시 클래스명 축약 (예: "AuthCredentialPersistenceAdapter" -> "AuthCredPersistAdapter")
+   - 이벤트명 축약 (예: "PasswordChangedEvent" -> "PwdChangedEvent")
+   - 텍스트가 여전히 안 맞으면 박스를 넓힐 것 — 9px 이하 폰트 사용 금지
+
+7. **검증**: HTML 생성 후 모든 텍스트 요소를 점검:
+   - 텍스트 x 위치 + 추정 텍스트 너비가 부모 rect 범위 안에 있는가?
+   - 아니라면 rect 너비를 늘리거나 텍스트 길이를 줄일 것
 
 #### 번호 원형 (Numbered Step Circles)
 
@@ -335,9 +372,9 @@ SVG `<path>` + `<marker>` 로 화살표:
       color: #1a202c;
     }
     .container {
-      max-width: 1200px;
+      max-width: 1600px;
       margin: 0 auto;
-      padding: 40px 20px;
+      padding: 40px 48px;
     }
     header {
       text-align: left;
@@ -358,6 +395,7 @@ SVG `<path>` + `<marker>` 로 화살표:
       padding: 24px;
       margin-bottom: 32px;
       background: #FFFFFF;
+      overflow: visible;
     }
     .panel-title {
       font-size: 16px;
@@ -413,21 +451,21 @@ SVG `<path>` + `<marker>` 로 화살표:
       letter-spacing: -0.5px;
     }
     /* 반드시 <div class="bytelogo">architecture-draw</div> 를 container 최상단에 배치한다 */
-    .tech-badges {
+    .tech-badges, .tech-grid {
       display: flex;
-      gap: 8px;
-      justify-content: flex-start;
+      gap: 18px;
+      justify-content: center;
       flex-wrap: wrap;
       margin-top: 12px;
-      padding-left: 21px;
     }
     .tech-badge {
-      padding: 4px 12px;
-      border-radius: 16px;
+      padding: 14px 22px;
+      border-radius: 10px;
       background: #F1F5F9;
       color: #475569;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 500;
+      gap: 10px;
     }
     section {
       margin-bottom: 48px;
@@ -483,7 +521,7 @@ SVG `<path>` + `<marker>` 로 화살표:
     <section class="architecture">
       <div class="panel panel-full">
         <div class="panel-title">System Architecture</div>
-        <svg width="1200" height="{동적 계산}" viewBox="0 0 1200 {동적 계산}">
+        <svg width="1500" height="{동적 계산}" viewBox="0 0 1500 {동적 계산}">
           <!-- defs: marker, filter -->
           <defs>
             <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
@@ -511,7 +549,7 @@ SVG `<path>` + `<marker>` 로 화살표:
           <span>{흐름 이름}</span>
         </div>
       </div>
-      <svg width="1200" height="{동적 계산}" viewBox="0 0 1200 {동적 계산}">
+      <svg width="1500" height="{동적 계산}" viewBox="0 0 1500 {동적 계산}">
         <!-- 동일한 defs -->
         <!-- 동일한 컴포넌트 배치 (연한 색상 또는 동일) -->
         <!-- 흐름 경로 path + animateMotion dot -->
@@ -537,7 +575,7 @@ Layer 4 (y=540):  외부 시스템 (Monitoring, CI/CD, Registry 등)
 
 레이아웃 규칙:
 - 각 레이어 간 y축 간격: `120px`
-- 같은 레이어의 컴포넌트는 x축 기준으로 `1200px` 내에서 균등 배치
+- 같은 레이어의 컴포넌트는 x축 기준으로 `1500px` 내에서 균등 배치
 - 컴포넌트 박스 크기: 너비 `160px`, 높이 `50px` (텍스트 길이에 따라 조정 가능)
 - 컴포넌트가 많은 레이어는 2행으로 분할 (한 행에 최대 6개)
 - SVG 전체 높이는 사용된 레이어 수에 맞게 동적 계산
@@ -608,6 +646,49 @@ Layer 4 (y=540):  외부 시스템 (Monitoring, CI/CD, Registry 등)
 - 끝점은 마지막 컴포넌트의 상단 중심
 - 중간 컴포넌트는 상단 중심에서 하단 중심으로 통과
 
+#### 인증/데이터 흐름 스타일 (Git Workflow Swim Lane Style)
+
+인증 흐름, 핵심 비즈니스 흐름 등 복잡한 단계별 흐름은 ByteByteDgo의 Git Workflow 다이어그램 스타일의 스윔 레인으로 표현한다:
+
+1. **상단 행: 컴포넌트 스윔 레인**
+   - 컴포넌트를 가로로 배치: Client, Service, DB, Cache, MQ (관련 있는 것만)
+   - 각 컴포넌트는 파스텔 박스 + 컬러 아이콘 + 설명 텍스트
+   - 각 컴포넌트에서 아래로 수직 점선(dotted line) 연장
+
+2. **열 카테고리 헤더**
+   - "External" (파랑), "Application" (초록), "Infrastructure" (보라)
+   - 관련 열을 아우르는 둥근 사각형 컬러 탭
+
+3. **수직 흐름 + 수평 화살표**
+   - 각 단계는 스윔 레인 간 수평 대시 화살표
+   - 각 화살표 시작점에 번호 원형 (컬러 배경, 흰색 숫자)
+   - 액션 유형별 색상 코드:
+     - HTTP 요청: #4A90D9 (파랑)
+     - DB 작업: #27AE60 (초록)
+     - Redis 작업: #E74C3C (빨강/분홍)
+     - 이벤트 발행: #8E44AD (보라)
+     - 응답: #F39C12 (주황)
+
+4. **액션 라벨에 흰색 배경 (CRITICAL)**
+   - 모든 액션 라벨에는 반드시 흰색 `<rect>`를 뒤에 배치할 것
+   - 이렇게 해야 라벨 텍스트가 화살표 선과 겹치지 않음
+   - Rect: `fill="white"`, `rx="4"`, `stroke`는 화살표 색상과 동일, `stroke-width="0.8"`, `stroke-dasharray="4 2"`
+   - 텍스트는 rect 안에 `text-anchor="middle"`로 중앙 정렬
+
+5. **왼쪽 측면 단계 라벨**
+   - 단계들을 그룹으로 묶어 대시 라벨 박스로 표시
+   - 예: "Authentication", "Token Generation", "Event Publishing"
+   - 대시 테두리, 둥근 모서리, 작은 폰트
+
+6. **분기점**
+   - 결정 포인트에 다이아몬드 형태 사용 (예: "2FA?")
+   - 다이아몬드에서 두 갈래 경로로 분기
+
+7. **animateMotion 점**
+   - 흐름 경로를 따라 움직이는 애니메이션 점 유지
+   - `<circle r="6">`, `dur="3s"`, `repeatCount="indefinite"`
+   - 각 흐름마다 고유한 밝은 색상
+
 #### 범례
 
 데이터 흐름 섹션 상단에 HTML로 범례를 표시한다:
@@ -656,23 +737,62 @@ Layer 4 (y=540):  외부 시스템 (Monitoring, CI/CD, Registry 등)
 
 ### 패널 분할 전략 (Panel Splitting Strategy)
 
-콘텐츠가 복잡할 때는 집중된 패널로 분할한다:
+콘텐츠가 복잡할 때는 집중된 패널로 분할한다. **"Architecture at a Glance" (간단한 개요)를 항상 첫 번째 패널로 배치**하고, 이후 상세 패널을 나열한다. (Simple -> Detail 흐름)
 
-1. **단일 서비스 분석 시**: 그리드 패널로 분할:
-   - Internal Architecture (계층 구조)
-   - API Endpoints (테이블/목록)
-   - Data Model (ERD)
-   - Authentication/Business Flows (애니메이션 흐름)
-   - Event Messaging (exchange/queue 다이어그램)
-   - Security (필터 체인)
+1. **단일 서비스 분석 시** (8-11개 패널):
+   1. Architecture at a Glance (전체 너비) — 조감도, 핵심 컴포넌트와 관계만 간략 표시
+   2. Hexagonal/Layered Architecture Overview (전체 너비) — 내부 계층 구조 상세
+   3. Domain Model Detail (전체 너비) — 도메인 엔티티 관계
+   4. Application Services & Use Cases (반 너비)
+   5. Infrastructure Adapters (반 너비)
+   6. API Endpoints (반 너비) — 테이블/목록
+   7. Data Model (반 너비) — ERD
+   8. Event Messaging (전체 너비) — exchange/queue 다이어그램
+   9. Authentication/Key Flows (전체 너비, 스윔 레인 스타일)
+   10. Security/Filter Chain (전체 너비) — 5개 박스가 수평 공간 필요
+   11. Tech Stack (전체 너비)
 
 2. **멀티 서비스 분석 시**: 다음으로 분할:
+   - Architecture at a Glance (전체 너비) — 조감도
    - System Overview (전체 너비)
    - 서비스별 요약 (그리드)
    - Data Flow (전체 너비, 애니메이션)
    - Infrastructure (그리드)
 
-각 패널은 **하나의 개념**에 집중하며, 자체적으로 완결적이어야 한다. ByteByteDgo 스타일처럼 페이지당 **4~6개 패널**을 그리드 레이아웃으로 배치하는 것을 목표로 한다.
+**전체 너비 필수 패널**: Security Filter Chain, Tech Stack, Authentication Flows는 항상 `panel-full` (`grid-column: 1 / -1`)로 배치한다. 이들은 수평 공간이 많이 필요하다.
+
+각 패널은 **하나의 개념**에 집중하며, 자체적으로 완결적이어야 한다. ByteByteDgo 스타일처럼 페이지당 **8~11개 패널**을 그리드 레이아웃으로 배치하는 것을 목표로 한다.
+
+### CSS 추가 규칙
+
+```css
+/* Security Filter Chain */
+.filter-chain { display: flex; flex-wrap: nowrap; justify-content: center; }
+.filter-box { padding: 16px 24px; min-width: 160px; font-size: 14px; border-radius: 12px; }
+.filter-arrow { margin: 0 12px; }
+
+/* SVG 폰트 크기 기준 */
+/* Panel titles: 16px, Section headers: 13px, Box labels: 11-12px, List items: 10-10.5px, Annotations: 9px */
+```
+
+### 스타일 레퍼런스
+
+시각적 스타일은 ByteByteDgo의 인포그래픽 다이어그램을 기반으로 한다. 핵심 특성:
+- 파스텔 색상 박스 (어두운 배경에 흰색 텍스트가 아님)
+- 모든 박스에 어두운 텍스트 (#333)
+- 섹션 그룹핑을 위한 검정 테두리 + 둥근 모서리 패널
+- 타이틀에 초록색 악센트 바 (`#2ECC71`)
+- 컬러풀한 SVG 아이콘 (흰색 단색이 아님)
+- 텍스트 라벨이 있는 대시 회색 화살표 (#888)
+- 2열 배치 그리드 레이아웃
+- 깔끔하고 교육적인 인포그래픽 느낌
+
+데이터 흐름에는 Git Workflow 다이어그램 스타일을 따른다:
+- 수직 점선이 있는 스윔 레인
+- 레인 간 수평 대시 화살표
+- 번호 단계 원형
+- 흰색 배경 rect가 있는 액션 라벨
+- 왼쪽 측면 단계 라벨
 
 ---
 
@@ -688,7 +808,7 @@ Layer 4 (y=540):  외부 시스템 (Monitoring, CI/CD, Registry 등)
 
 - 이모지를 절대 사용하지 않는다. 모든 시각적 요소는 SVG 아이콘으로 표현한다.
 - 외부 CDN, 라이브러리, 폰트를 로드하지 않는다. 순수 HTML + CSS + inline SVG만 사용한다.
-- 반응형 레이아웃은 불필요하다. 1200px 고정 너비를 기준으로 한다.
+- 반응형 레이아웃은 불필요하다. 1600px 고정 너비를 기준으로 한다.
 - SVG 내부에서 `<foreignObject>`는 사용하지 않는다. 순수 SVG 요소만 사용한다.
 - 분석 시 실제 존재하는 파일만 읽는다. 추측으로 파일을 만들어내지 않는다.
 - 코드베이스에서 확인할 수 없는 컴포넌트는 다이어그램에 포함하지 않는다.
