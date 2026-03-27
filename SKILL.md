@@ -265,12 +265,12 @@ SVG `<path>` + `<marker>` 로 화살표:
 
 #### 전체 레이아웃
 
-- 배경: `#FFFFFF`
+- 배경: `#F5F5F5`
 - 전체 너비: `1600px`, 중앙 정렬
 - 폰트: `Segoe UI, system-ui, -apple-system, sans-serif`
 - 각 섹션을 `.panel` (검정 테두리, 둥근 모서리 12px, 흰색 배경) 로 감싼다
 - 패널 내부 서브섹션 구분: 점선 (`stroke-dasharray="6 3"`, `#CCCCCC`)
-- 타이틀에 녹색 세로 악센트 바 (`border-left: 5px solid #2ECC71`)
+- 타이틀에 녹색 악센트 바 (header의 `.accent-bar`)
 
 #### SVG 아이콘
 
@@ -350,6 +350,31 @@ SVG `<path>` + `<marker>` 로 화살표:
 | cicd | 순환 화살표 | #3498DB | `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#3498DB" stroke-width="1.5"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/></svg>` |
 | registry | 컨테이너 박스 | #16A085 | `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#16A085" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>` |
 
+### SVG vs HTML/CSS 사용 원칙
+
+**HTML/CSS를 우선 사용한다.** SVG는 복잡한 연결선, 애니메이션이 필요한 곳에만 사용한다.
+
+HTML/CSS로 구현하는 요소:
+- API 엔드포인트 목록 → flex row (`.api-row`)
+- Security Filter Chain → CSS flex (`.filter-chain`)
+- Tech Stack 배지 → flex wrap (`.tech-grid`)
+- Entity/Data Model 카드 → HTML entity card (`.entity-card`)
+- Event Messaging 박스 → CSS grid/flex
+- 단순한 컴포넌트 나열 → CSS box 유틸리티 클래스
+
+SVG로 구현하는 요소:
+- Architecture at a Glance → 컴포넌트 + 연결선 + 라벨 (SVG)
+- Hexagonal Architecture → 계층 구조 + 화살표 (SVG, `flow-svg-container` 감싸기)
+- Domain Model 상세 → 필드/메서드/관계 (SVG, `flow-svg-container` 감싸기)
+- Data Flow 애니메이션 → `animateMotion` dot (SVG)
+- Swim Lane 흐름 → 스윔 레인 + 수평 화살표 (SVG)
+
+SVG 사용 시 규칙:
+- 반드시 `<div class="flow-svg-container">` 로 감싼다
+- `viewBox`를 사용하고, 고정 width 대신 `style="width:100%;overflow:visible"` 을 적용한다
+- 배경 영역 그루핑에는 `fill-opacity="0.3"` 을 적용하여 미묘한 구분을 준다
+- 코드 관련 텍스트 (클래스명, 메서드명)는 monospace 폰트 사용: `font-family="SF Mono,Fira Code,Consolas,monospace"`
+
 ### HTML 생성 규칙
 
 #### 파일 구조
@@ -368,8 +393,9 @@ SVG `<path>` + `<marker>` 로 화살표:
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: #FFFFFF;
+      background: #F5F5F5;
       color: #1a202c;
+      --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     }
     .container {
       max-width: 1600px;
@@ -378,15 +404,7 @@ SVG `<path>` + `<marker>` 로 화살표:
     }
     header {
       text-align: left;
-      margin-bottom: 48px;
-    }
-    header h1 {
-      font-size: 32px;
-      font-weight: 700;
-      color: #1a202c;
-      margin-bottom: 8px;
-      border-left: 5px solid #2ECC71;
-      padding-left: 16px;
+      margin-bottom: 24px;
     }
     /* ByteByteGo 스타일 패널 */
     .panel {
@@ -403,9 +421,12 @@ SVG `<path>` + `<marker>` 로 화살표:
       margin-bottom: 16px;
       color: #333;
       padding: 4px 12px;
-      background: #F0F0F0;
+      padding-bottom: 10px;
+      border-bottom: 1.5px dashed #ddd;
       border-radius: 6px;
-      display: inline-block;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     /* 패널 그리드: ByteByteDgo 스타일 2열 그리드 배치 */
     .panels-grid {
@@ -440,17 +461,37 @@ SVG `<path>` + `<marker>` 로 화살표:
       padding: 2px 8px;
       border-radius: 4px;
     }
-    .bytelogo {
-      position: absolute;
-      top: 20px;
-      right: 24px;
-      font-size: 18px;
-      font-weight: 700;
-      color: #4A9EC5;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      letter-spacing: -0.5px;
-    }
-    /* 반드시 <div class="bytelogo">architecture-draw</div> 를 container 최상단에 배치한다 */
+    /* Utility color classes */
+    .bg-blue { background: #D4EFFF; }
+    .bg-green { background: #C8F7DC; }
+    .bg-pink { background: #FFD6E0; }
+    .bg-yellow { background: #FFF9C4; }
+    .bg-purple { background: #E8D5F5; }
+    .bg-orange { background: #FFE0C0; }
+    .bg-gray { background: #F0F0F0; }
+    /* Badge */
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 5px; font-size: 13px; font-weight: 700; color: #333; }
+    /* Header */
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; max-width: 1600px; margin-left: auto; margin-right: auto; }
+    .header-title { display: flex; align-items: center; gap: 0; }
+    .header-title .accent-bar { width: 6px; height: 48px; background: #2ECC71; border-radius: 3px; margin-right: 14px; }
+    .header-title h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; color: #1a1a1a; }
+    .brand { font-size: 18px; font-weight: 700; color: #333; display: flex; align-items: center; gap: 6px; }
+    /* Flow SVG container */
+    .flow-svg-container { width: 100%; overflow: visible; }
+    .flow-svg-container svg { width: 100%; height: auto; overflow: visible; }
+    /* Entity cards */
+    .entity-card { flex: 1; min-width: 280px; border-radius: 10px; overflow: hidden; }
+    .entity-header { padding: 8px 14px; font-size: 14px; font-weight: 700; color: #333; display: flex; align-items: center; gap: 6px; }
+    .entity-fields { padding: 6px 14px 10px; background: #fff; border: 1.5px solid #ddd; border-top: none; border-radius: 0 0 10px 10px; }
+    .entity-field { display: flex; align-items: center; gap: 6px; padding: 3px 0; font-size: 12px; }
+    .field-name { font-family: var(--font-mono); font-weight: 600; color: #333; }
+    .field-type { color: #888; font-size: 11px; margin-left: auto; }
+    /* API endpoint rows */
+    .api-group { margin-bottom: 16px; }
+    .api-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12.5px; }
+    .api-path { font-family: var(--font-mono); font-size: 12px; color: #555; }
+    .api-desc { color: #888; font-size: 11.5px; margin-left: auto; }
     .tech-badges, .tech-grid {
       display: flex;
       gap: 18px;
@@ -503,11 +544,22 @@ SVG `<path>` + `<marker>` 로 화살표:
   </style>
 </head>
 <body>
-  <div class="container" style="position: relative;">
-    <div class="bytelogo">architecture-draw</div>
-    <!-- 헤더: 프로젝트명 + 프로젝트 타입 + 기술 스택 배지 -->
+  <div class="container">
+    <!-- 헤더: 악센트 바 + 프로젝트명 + 브랜드 -->
+    <div class="header">
+      <div class="header-title">
+        <div class="accent-bar"></div>
+        <h1><span class="highlight">{프로젝트명}</span> Architecture</h1>
+      </div>
+      <div class="brand">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="2" width="20" height="20" rx="4" fill="#2ECC71"/>
+          <path d="M7 12h10M12 7v10" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        architecture-draw
+      </div>
+    </div>
     <header>
-      <h1><span class="highlight">{프로젝트명}</span> Architecture</h1>
       <p>{프로젝트 타입}: {서비스 수}개 서비스</p>
       <div class="tech-badges">
         <!-- 감지된 기술 스택을 배지로 나열 -->
@@ -520,7 +572,11 @@ SVG `<path>` + `<marker>` 로 화살표:
     <!-- 섹션 1: 시스템 아키텍처 (전체 너비 패널) -->
     <section class="architecture">
       <div class="panel panel-full">
-        <div class="panel-title">System Architecture</div>
+        <div class="panel-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A9EC5" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="4"/><path d="M12 2v20M2 12h20"/></svg>
+          <span class="badge bg-blue">System Architecture</span>
+          Bird's Eye View
+        </div>
         <svg width="1500" height="{동적 계산}" viewBox="0 0 1500 {동적 계산}">
           <!-- defs: marker, filter -->
           <defs>
@@ -541,7 +597,11 @@ SVG `<path>` + `<marker>` 로 화살표:
     <!-- 섹션 2: 데이터 흐름 (패널로 감싸기) -->
     <section class="data-flow">
       <div class="panel">
-        <div class="panel-title">Data Flow</div>
+        <div class="panel-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          <span class="badge bg-pink">Data Flow</span>
+          Animated Request Lifecycle
+        </div>
       <div class="flow-legend">
         <!-- 흐름별 범례 -->
         <div class="legend-item">
@@ -778,14 +838,19 @@ Layer 4 (y=540):  외부 시스템 (Monitoring, CI/CD, Registry 등)
 ### 스타일 레퍼런스
 
 시각적 스타일은 ByteByteDgo의 인포그래픽 다이어그램을 기반으로 한다. 핵심 특성:
+- **회색 배경 (`#F5F5F5`)** 위에 **흰색 패널** — 카드가 부각되는 구조
 - 파스텔 색상 박스 (어두운 배경에 흰색 텍스트가 아님)
 - 모든 박스에 어두운 텍스트 (#333)
 - 섹션 그룹핑을 위한 검정 테두리 + 둥근 모서리 패널
-- 타이틀에 초록색 악센트 바 (`#2ECC71`)
+- **패널 타이틀에 SVG 아이콘 + 배지 + 설명** (예: `[icon] [Architecture at a Glance] Bird's Eye View`)
+- 타이틀에 녹색 악센트 바 (header의 `.accent-bar`)
 - 컬러풀한 SVG 아이콘 (흰색 단색이 아님)
 - 텍스트 라벨이 있는 대시 회색 화살표 (#888)
 - 2열 배치 그리드 레이아웃
 - 깔끔하고 교육적인 인포그래픽 느낌
+- **코드 요소는 monospace 폰트** (`SF Mono, Fira Code, Consolas`)
+- **실제 클래스명, 메서드명, 필드명을 표시** — 추상적 설명이 아닌 구체적 코드 정보
+- **정보 밀도**: 각 패널에 실제 코드에서 추출한 구체적 정보를 풍부하게 표시
 
 데이터 흐름에는 Git Workflow 다이어그램 스타일을 따른다:
 - 수직 점선이 있는 스윔 레인
