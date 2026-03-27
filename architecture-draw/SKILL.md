@@ -681,7 +681,8 @@ Layer 4 (y=540):  외부 시스템 (Monitoring, CI/CD, Registry 등)
 1. 각 데이터 흐름 경로를 SVG `<path>`로 정의한다
 2. 경로 path에는 `stroke-dasharray="8 4"` + `opacity="0.6"` 를 적용하여 점선으로 표시한다 (흐름별 고유 색상 사용)
 3. 작은 원 (`<circle r="6">`)에 `<animateMotion>`을 적용하여 경로를 따라 이동시킨다
-4. 각 흐름마다 고유 색상을 적용한다 (dot fill 색상 + path stroke 색상 동일)
+4. **Z-order (CRITICAL)**: 애니메이션 path와 dot은 반드시 박스(`<rect>`)보다 **먼저** 그린다. SVG는 코드 순서가 z-order이므로, dot을 먼저 그려야 박스 뒤로 지나간다.
+5. 각 흐름마다 고유 색상을 적용한다 (dot fill 색상 + path stroke 색상 동일)
 5. `dur="3s"`로 애니메이션 속도를 설정한다
 6. `repeatCount="indefinite"`로 무한 반복한다
 7. 여러 흐름이 동시에 재생된다

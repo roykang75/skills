@@ -7,6 +7,7 @@ Claude Code에서 사용하는 커스텀 스킬 모음입니다.
 | 스킬 | 설명 |
 |---|---|
 | [architecture-draw](./architecture-draw/) | 소스 코드를 분석하여 ByteByteDgo 스타일 아키텍처 다이어그램 HTML 생성 |
+| [infra-draw](./infra-draw/) | 인프라 설정 파일을 분석하여 ByteByteDgo 스타일 인프라 토폴로지 다이어그램 HTML 생성 |
 
 ## 설치
 
