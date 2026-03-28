@@ -691,9 +691,10 @@ Layer 4 (y=540):  외부 시스템 (Monitoring, CI/CD, Registry 등)
 1. 각 데이터 흐름 경로를 SVG `<path>`로 정의한다
 2. 경로 path에는 `stroke-dasharray="8 4"` + `opacity="0.6"` 를 적용하여 점선으로 표시한다 (흐름별 고유 색상 사용)
 3. 작은 원 (`<circle r="6">`)에 `<animateMotion>`을 적용하여 경로를 따라 이동시킨다
-4. **Z-order (CRITICAL)**: 애니메이션 path와 dot은 반드시 박스(`<rect>`)보다 **먼저** 그린다. SVG는 코드 순서가 z-order이므로, dot을 먼저 그려야 박스 뒤로 지나간다.
+4. **Z-order (CRITICAL)**: 애니메이션 path와 dot은 반드시 박스(`<rect>`)보다 **먼저** 그린다. SVG는 코드 순서가 z-order이므로, dot을 먼저 그려야 박스 뒤로 지나간다. 단, 번호 ball과 겹치는 화살표는 ball을 화살표 **뒤에** 그려서 ball이 화살표 위에 표시되게 한다.
 5. 각 흐름마다 고유 색상을 적용한다 (dot fill 색상 + path stroke 색상 동일)
-5. `dur="3s"`로 애니메이션 속도를 설정한다
+6. **역방향 화살표 (CRITICAL)**: `orient="auto"` 마커는 line 방향에 맞춰 자동 회전하므로, 역방향 line (x1 > x2)에도 정방향 마커(`M0,0 L8,4 L0,8`)를 사용한다. 별도의 역방향 마커(`swimArrowBack`)를 만들면 이중 반전되어 화살표가 반대로 표시된다.
+7. `dur` 속성은 경로 길이에 비례하여 설정한다. 짧은 흐름은 `dur="3s"`, 긴 스윔 레인은 `dur="10~12s"`.
 6. `repeatCount="indefinite"`로 무한 반복한다
 7. 여러 흐름이 동시에 재생된다
 

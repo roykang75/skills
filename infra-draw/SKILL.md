@@ -263,7 +263,9 @@ HTML/CSS로 구현하는 요소:
 SVG로 구현하는 요소:
 - Infrastructure at a Glance → 서비스 + 연결선 + 라벨
 - Network Topology → 네트워크 영역 + 서비스 배치 + 연결선
-- Traffic Flow 애니메이션 → `animateMotion` dot (반드시 박스보다 먼저 그려서 박스 뒤로 지나가게 할 것 — SVG z-order)
+- Traffic Flow 애니메이션 → `animateMotion` dot (반드시 박스보다 먼저 그려서 박스 뒤로 지나가게 할 것 — SVG z-order). 단, 번호 ball과 겹치는 화살표는 ball을 화살표 뒤에 그려서 ball이 위에 표시되게 한다.
+- 역방향 화살표: `orient="auto"` 마커는 line 방향에 맞춰 자동 회전하므로, 역방향 line에도 정방향 마커를 사용한다 (별도 역방향 마커 불필요)
+- `dur` 속성: 경로 길이에 비례 (짧은 흐름 3s, 긴 스윔 레인 10~12s)
 - 로그/메트릭 수집 흐름 → 화살표 + 경로
 
 SVG 사용 시 규칙:
