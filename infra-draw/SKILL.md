@@ -508,6 +508,9 @@ HTML 생성 후 반드시 Playwright MCP로 시각 검증을 수행한다:
    - 하단 불필요한 여백이 없는가?
 5. 문제 발견 시 HTML을 수정하고 다시 캡쳐하여 확인
 6. **최대 5회 반복** — 5회 이내에 해결되지 않으면 현재 상태로 완료하고 발견된 이슈를 사용자에게 보고
+7. **최종 스크린샷 저장 (필수)**: 검증 완료 후 최종 화면을 PNG 파일로 저장한다
+   - `browser_take_screenshot` (fullPage: true, type: png)
+   - 파일명: `{프로젝트경로}/docs/infrastructure[-simple]-screenshot.png`
 
 ---
 
