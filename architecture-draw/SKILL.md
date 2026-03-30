@@ -958,7 +958,7 @@ poster 모드는 ByteByteDgo 인포그래픽 포스터 스타일로 생성한다
 1. 시작/끝은 반드시 박스의 edge center (top/bottom/left/right)에 연결
 2. cubic bezier의 마지막 좌표가 반드시 target의 edge center여야 함
 3. 박스 중심에서 벗어난 연결 금지
-4. 화살표가 다른 박스를 관통하면 안 됨
+4. **화살표/연결선이 다른 박스를 관통하면 안 됨 (CRITICAL)**: path가 중간에 있는 박스 위를 지나가지 않도록 경로를 우회한다. 선이 박스 위를 지나가야 하는 경우 반드시 박스 아래로 우회시킨다. SVG z-order로 해결하지 말고 path 자체를 우회 경로로 변경할 것.
 5. 4개 이상 팬아웃 시 시작점 분산 필수
 
 **곡선은 반드시 cubic bezier S-커브:**
@@ -1011,18 +1011,60 @@ path = "M sx,sy C sx,midY tx,midY tx,turnY L tx,targetY"
 
 HTML 생성 후 반드시 Playwright MCP로 시각 검증을 수행한다:
 
+### Step 1: 전체 페이지 스크린샷
+
 1. 로컬 HTTP 서버 실행: `python3 -m http.server 8888` (docs 디렉토리에서)
 2. Playwright로 페이지 열기: `browser_navigate` → `http://localhost:8888/{파일명}`
 3. 전체 페이지 스크린샷 캡쳐: `browser_take_screenshot` (fullPage: true)
-4. 스크린샷에서 다음 항목 검증:
-   - 텍스트가 박스 밖으로 넘치지 않는가?
-   - 애니메이션 dot 경로가 화살표/연결선과 일치하는가?
-   - 박스 간 겹침이 없는가?
-   - 레이아웃이 의도대로 배치되었는가?
-   - 하단 불필요한 여백이 없는가?
+
+### Step 2: 패널별 상세 스크린샷 (CRITICAL)
+
+**전체 페이지 스크린샷만으로는 디테일 문제를 발견할 수 없다.** 반드시 각 패널을 개별로 캡쳐하여 확대 검증한다:
+
+```
+browser_take_screenshot(element: "Panel 이름", ref: "패널ref", type: png)
+```
+
+각 패널 스크린샷에서 다음을 확인:
+- **박스 내부 여백 (CRITICAL)**: 중첩 박스(box-in-box)의 상하좌우 여백이 균등해야 한다. 컨테이너 박스 안에 자식 박스를 배치할 때, 첫 번째 자식의 위 여백과 마지막 자식의 아래 여백이 동일해야 보기 편하다. 타이틀 텍스트 높이를 고려하여 계산할 것.
+- **박스 간 최소 간격**: 직선 연결은 최소 40px, S-커브 연결은 최소 60px, S-커브 팬아웃(1→3)은 최소 70px. 간격이 좁으면 화살표 머리가 찌그러지고 S-커브가 급격하게 꺾인다.
+- **화살표 머리(marker)**: 모든 라인 끝에 화살표 삼각형이 정상 표시되는가? (marker 누락, 잘림 확인)
+- **라인 연결점**: 라인이 박스의 edge center에 연결되는가? (텍스트나 박스 내부에 연결되면 안 됨)
+- **라벨-라인 겹침 방지 (CRITICAL)**: 화살표 옆 텍스트 라벨이 라인과 겹치면 안 된다. 라벨은 라인 위가 아닌 **라인 옆(offset)**에 배치한다:
+    - 수직 라인: 라벨을 라인 오른쪽에 배치 (x = 라인x + 15px)
+    - 수평 라인: 라벨을 라인 위쪽에 배치 (y = 라인y - 12px)
+    - S-커브: 라벨을 커브 바깥쪽에 배치 (커브가 왼쪽으로 휘면 라벨은 왼쪽 위에)
+    - 흰색 배경 rect는 사용하지 않는다 (텍스트 중앙 정렬 오차 문제)
+- **라인이 박스 관통**: 라인이 다른 박스 위를 지나가지 않는가? (박스 아래로 우회해야 함)
+- **화살표 방향**: 데이터 흐름 방향과 일치하는가? (orient="auto" + 역방향 line에서 반대 표시 빈번)
+- **텍스트 오버플로우**: 텍스트가 박스 밖으로 넘치지 않는가?
+- **박스 겹침**: 박스끼리 겹치지 않는가?
+
+### Step 3: SVG 좌표 셀프 검증
+
+Playwright 캡쳐 전에 HTML 소스에서 SVG 좌표를 프로그래밍적으로 검증한다:
+
+1. **모든 path의 끝점이 target 박스의 edge center와 일치하는지 확인**:
+   - 박스 rect: x, y, width, height → edge centers 계산
+   - path의 마지막 좌표 (또는 L 좌표) == 박스의 top/bottom/left/right center
+   - 오차 허용: ±2px 이내
+
+2. **animateMotion path가 해당 화살표 path와 동일한 경로인지 확인**:
+   - animateMotion의 mpath href가 올바른 path id를 참조하는지
+   - 참조하는 path의 d 속성이 실제 화살표 경로와 일치하는지
+
+3. **marker-end 속성이 모든 화살표 path에 있는지 확인**
+
+4. **defs에 사용된 모든 색상의 marker가 정의되어 있는지 확인**
+
+### Step 4: 수정 반복
+
 5. 문제 발견 시 HTML을 수정하고 다시 캡쳐하여 확인
 6. **최대 5회 반복** — 5회 이내에 해결되지 않으면 현재 상태로 완료하고 발견된 이슈를 사용자에게 보고
-7. **최종 스크린샷 저장 (필수)**: 검증 완료 후 최종 화면을 PNG 파일로 저장한다
+
+### Step 5: 최종 스크린샷 저장 (필수)
+
+7. 검증 완료 후 최종 화면을 PNG 파일로 저장한다
    - `browser_take_screenshot` (fullPage: true, type: png)
    - 파일명: `{프로젝트경로}/docs/architecture[-simple|-poster]-screenshot.png`
    - 예: `docs/architecture-screenshot.png`, `docs/architecture-simple-screenshot.png`, `docs/architecture-poster-screenshot.png`
